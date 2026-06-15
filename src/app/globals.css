@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Critical: set before JS loads ─────────────────── */
+html,
+body {
+  background-color: #020408;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  color: #f0eee8;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body[data-gate-active='true'] {
+  overflow: hidden;
+}
+
+/* ── Design tokens ──────────────────────────────────── */
+:root {
+  /* Void */
+  --void-black:   #020408;
+  --void-deep:    #070d14;
+  --void-surface: #0d1520;
+
+  /* Neural */
+  --neural-white:  #f0eee8;
+  --neural-silver: #a8b4c0;
+  --neural-ghost:  #3a4a58;
+
+  /* Amber */
+  --amber-fire: #e8803a;
+  --amber-warm: #c4602a;
+  --amber-ember: #7a3a18;
+
+  /* Indigo */
+  --indigo-deep:  #1a1440;
+  --indigo-mid:   #2d2270;
+  --indigo-light: #4a3aa8;
+
+  /* Gold */
+  --gold-pure: #d4a840;
+  --gold-pale: #e8d090;
+  --gold-dim:  #7a5c18;
+
+  /* Spectrum */
+  --spectrum-rose:   #d4406a;
+  --spectrum-violet: #7040c8;
+  --spectrum-teal:   #20a8a0;
+  --spectrum-lime:   #80c840;
+
+  /* Semantic — updated by JS */
+  --state-primary: var(--neural-white);
+  --state-accent:  transparent;
+  --state-bg:      var(--void-black);
+
+  /* Spacing */
+  --space-breath: 4vh;
+  --space-near:   8vh;
+  --space-mid:    16vh;
+  --space-far:    24vh;
+  --space-vast:   40vh;
+}
+
+/* ── Accessibility ──────────────────────────────────── */
+.sr-only {
+  position:    absolute;
+  width:       1px;
+  height:      1px;
+  padding:     0;
+  margin:      -1px;
+  overflow:    hidden;
+  clip:        rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+:focus-visible {
+  outline:        2px solid var(--neural-white);
+  outline-offset: 4px;
+}
+
+/* ── Reduced motion ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration:        0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration:       0.01ms !important;
+  }
+}
+
+/* ── Base reset ─────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span {
+  margin: 0;
+  padding: 0;
+}
+
+button {
+  background: none;
+  border:     none;
+  cursor:     pointer;
+  padding:    0;
+}
+
+canvas {
+  display: block;
+}
+
+/* ── Loading pulse animation ────────────────────────── */
+@keyframes hme-pulse {
+  from {
+    box-shadow: 0 0 8px 3px rgba(240, 238, 232, 0.3);
+  }
+  to {
+    box-shadow: 0 0 16px 6px rgba(240, 238, 232, 0.6);
+  }
+}

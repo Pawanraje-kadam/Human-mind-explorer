@@ -7,9 +7,9 @@ import {
   Color,
   Vector3,
 } from 'three'
-import clarityVertex   from '@/webgl/shaders/clarity/vertex.glsl'
-import clarityFragment from '@/webgl/shaders/clarity/fragment.glsl'
-import type { DeviceCapabilities } from '@/types/mind'
+import clarityVertex   from '../shaders/clarity/vertex.glsl'
+import clarityFragment from '../shaders/clarity/fragment.glsl'
+import type { DeviceCapabilities } from '../../types/mind'
 
 // Single icosahedron wireframe. Requires a per-vertex barycentric
 // attribute for the fragment shader's edge-detection wireframe

@@ -7,9 +7,9 @@ import {
   Group,
   Scene,
 } from 'three'
-import passthroughVertex      from '@/webgl/shaders/shared/passthrough.vertex.glsl'
-import disorientationFragment from '@/webgl/shaders/disorientation/fragment.glsl'
-import type { DeviceCapabilities } from '@/types/mind'
+import passthroughVertex      from '../shaders/shared/passthrough.vertex.glsl'
+import disorientationFragment from '../shaders/disorientation/fragment.glsl'
+import type { DeviceCapabilities } from '../../types/mind'
 
 interface Shard {
   mesh:     Mesh

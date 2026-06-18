@@ -6,10 +6,10 @@ import {
   Color,
   Vector2,
 } from 'three'
-import passthroughVertex from '@/webgl/shaders/shared/passthrough.vertex.glsl'
-import discoveryFragment from '@/webgl/shaders/discovery/fragment.glsl'
-import { lerp } from '@/lib/math'
-import type { DeviceCapabilities } from '@/types/mind'
+import passthroughVertex from '../shaders/shared/passthrough.vertex.glsl'
+import discoveryFragment from '../shaders/discovery/fragment.glsl'
+import { lerp } from '../../lib/math'
+import type { DeviceCapabilities } from '../../types/mind'
 
 interface ClickReveal {
   center:   Vector2

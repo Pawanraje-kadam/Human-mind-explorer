@@ -10,9 +10,9 @@ import {
   Color,
   Vector3,
 } from 'three'
-import passthroughVertex   from '@/webgl/shaders/shared/passthrough.vertex.glsl'
-import recognitionFragment from '@/webgl/shaders/recognition/fragment.glsl'
-import type { DeviceCapabilities } from '@/types/mind'
+import passthroughVertex   from '../shaders/shared/passthrough.vertex.glsl'
+import recognitionFragment from '../shaders/recognition/fragment.glsl'
+import type { DeviceCapabilities } from '../../types/mind'
 
 interface Thread {
   points:    Vector3[]

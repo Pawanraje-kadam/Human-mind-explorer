@@ -16,7 +16,7 @@ import { StateContentManager }        from '@/components/StateContentManager'
 import { StateAnnouncer }             from '@/components/StateAnnouncer'
 import { KeyboardNavIndicator }       from '@/components/KeyboardNavIndicator'
 import { EntryGate }                  from './EntryGate'
-import { ScrollContainer }            from './ScrollContainer'
+import  ScrollContainer             from './ScrollContainer'
 import { ExitPortal }                 from './ExitPortal'
 import { DisorientationOverlay }      from './DisorientationOverlay'
 

@@ -5,11 +5,10 @@ import {
   Scene,
   Vector2,
 } from 'three'
-import awakeningVertex   from '@/webgl/shaders/awakening/vertex.glsl'
-import awakeningFragment from '@/webgl/shaders/awakening/fragment.glsl'
-import { lerp } from '@/lib/math'
-import type { DeviceCapabilities } from '@/types/mind'
-
+import awakeningVertex   from '../shaders/awakening/vertex.glsl'
+import awakeningFragment from '../shaders/awakening/fragment.glsl'
+import { lerp } from '../../lib/math'
+import type { DeviceCapabilities } from '../../types/mind'
 // The Awakening orb. This object is never disposed for the lifetime
 // of the experience — it persists through every state (hidden when
 // not needed) and reappears at Integration. See Phase 8/10 notes:

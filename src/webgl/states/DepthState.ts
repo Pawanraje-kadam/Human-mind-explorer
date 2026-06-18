@@ -7,9 +7,9 @@ import {
   Color,
   FogExp2,
 } from 'three'
-import passthroughVertex from '@/webgl/shaders/shared/passthrough.vertex.glsl'
-import depthFragment     from '@/webgl/shaders/depth/fragment.glsl'
-import type { DeviceCapabilities } from '@/types/mind'
+import passthroughVertex from '../shaders/shared/passthrough.vertex.glsl'
+import depthFragment     from '../shaders/depth/fragment.glsl'
+import type { DeviceCapabilities } from '../../types/mind'
 
 // 12 translucent memory layers (6 on mobile), exponentially spaced
 // in depth. Scroll-speed reactive: fast scroll blurs distant layers,

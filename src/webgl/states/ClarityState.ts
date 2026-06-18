@@ -45,7 +45,7 @@ export class ClarityState {
     // detail level 1, non-indexed by default in modern Three.js —
     // verified required for the per-triangle barycentric trick to work
     this.geometry = new IcosahedronGeometry(0.3, 1)
-    this.geometry = this.geometry.toNonIndexed()
+    this.geometry = this.geometry.toNonIndexed() as any
     addBarycentricAttribute(this.geometry)
 
     this.material = new ShaderMaterial({

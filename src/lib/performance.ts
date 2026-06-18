@@ -4,7 +4,7 @@ export async function detectCapabilities(
   canvas: HTMLCanvasElement
 ): Promise<DeviceCapabilities> {
   const cores  = navigator.hardwareConcurrency ?? 2
-  const memory = (navigator as Record<string, unknown>).deviceMemory as number ?? 2
+ const memory = (navigator as any).deviceMemory ?? 2
   const gpuScore = await benchmarkGPU()
 
   if (gpuScore > 14 && cores >= 8 && memory >= 8) {

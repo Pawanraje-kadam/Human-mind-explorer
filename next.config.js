@@ -1,50 +1,14 @@
 /** @type {import('next').NextConfig} */
-const config = {
-  webpack: (config, { isServer }) => {
-    config.module.rules.push({
-      test: /\.(glsl|vert|frag)$/,
-      type: 'asset/source',
-    })
-
-    if (!isServer) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        three: require.resolve('three'),
-      }
-    }
-
-    return config
-  },
-
-  compress: true,
+const nextConfig = {
   reactStrictMode: true,
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.(glsl|vs|fs|vert|frag)$/,
+      type: 'asset/source', // Allows WebGL shaders to load as text strings
+    });
 
-  experimental: {
-    optimizePackageImports: ['three', 'gsap'],
+    return config;
   },
+};
 
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-        ],
-      },
-      {
-        source: '/_next/static/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-    ]
-  },
-}
-
-module.exports = config
+module.exports = nextConfig;

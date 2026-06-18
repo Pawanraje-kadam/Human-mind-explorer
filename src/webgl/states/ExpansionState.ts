@@ -15,9 +15,9 @@ import {
   PlaneGeometry,
   Mesh,
 } from 'three'
-import expansionVertex   from '@/webgl/shaders/expansion/vertex.glsl'
-import expansionFragment from '@/webgl/shaders/expansion/fragment.glsl'
-import type { DeviceCapabilities } from '@/types/mind'
+import expansionVertex   from '../shaders/expansion/vertex.glsl'
+import expansionFragment from '../shaders/expansion/fragment.glsl'
+import type { DeviceCapabilities } from '../../types/mind'
 
 // GPGPU fluid particle system. Desktop: 80,000 particles via
 // ping-pong position/velocity render targets (Phase 8 architecture

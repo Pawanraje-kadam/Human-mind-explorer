@@ -4,9 +4,9 @@ import {
   Mesh,
   Scene,
 } from 'three'
-import passthroughVertex   from '@/webgl/shaders/shared/passthrough.vertex.glsl'
-import integrationFragment from '@/webgl/shaders/integration/fragment.glsl'
-import type { DeviceCapabilities } from '@/types/mind'
+import passthroughVertex   from '../shaders/shared/passthrough.vertex.glsl'
+import integrationFragment from '../shaders/integration/fragment.glsl'
+import type { DeviceCapabilities } from '../../types/mind'
 
 // Integration compositing layer. Per Phase 8's resolved architectural
 // risk: this does NOT render all 8 prior shader systems individually.

@@ -4,7 +4,7 @@ const nextConfig = {
   webpack: (config) => {
     config.module.rules.push({
       test: /\.(glsl|vs|fs|vert|frag)$/,
-      type: 'asset/source', // Allows WebGL shaders to load as text strings
+      type: 'asset/source', // This tells Next.js to read shader files as text
     });
 
     return config;

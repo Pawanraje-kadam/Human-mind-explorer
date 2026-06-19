@@ -1,38 +1,20 @@
-import React, { ReactNode, forwardRef } from 'react';
+'use client'
 
-interface ScrollContainerProps {
-  children?: ReactNode;
-  className?: string;
-  height?: string;
-  width?: string;
-  horizontal?: boolean;
-}
+import { forwardRef, useEffect, useRef } from 'react'
 
-const ScrollContainer = forwardRef<HTMLDivElement, ScrollContainerProps>(({
-  children,
-  className = '',
-  height = '100%',
-  width = '100%',
-  horizontal = false,
-}, ref) => {
-  return (
-    <div
-      ref={ref}
-      className={`
-        ${horizontal ? 'overflow-x-auto overflow-y-hidden' : 'overflow-y-auto overflow-x-hidden'} 
-        scroll-smooth 
-        ${className}
-      `}
-      style={{
-        maxHeight: height,
-        maxWidth: width,
-      }}
-    >
-      {children}
-    </div>
-  );
-});
-
-ScrollContainer.displayName = 'ScrollContainer';
-
-export { ScrollContainer }
+export const ScrollContainer = forwardRef<HTMLDivElement>(
+  function ScrollContainer(_, ref) {
+    return (
+      <div
+        ref={ref}
+        aria-hidden="true"
+        style={{
+          height:       '800vh',
+          width:        '100%',
+          position:     'relative',
+          pointerEvents: 'none',
+        }}
+      />
+    )
+  }
+)

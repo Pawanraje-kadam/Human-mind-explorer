@@ -22,7 +22,6 @@ import { ClarityState }        from './states/ClarityState'
 import { ExpansionState }      from './states/ExpansionState'
 import { IntegrationState }    from './states/IntegrationState'
 
-// Union of every state class — each exposes update()/setVisible()/dispose()
 type AnyState =
   | AwakeningState | RecognitionState | DepthState | DisorientationState
   | DiscoveryState | ClarityState | ExpansionState | IntegrationState
@@ -34,13 +33,10 @@ export class WebGLManager {
   private scene!:        Scene
   private camera!:       PerspectiveCamera
   private cameraRig!:    CameraRig
-  private post!:         PostProcessing
+  private post:          PostProcessing | null = null
   private capabilities!: DeviceCapabilities
 
-  // Awakening is special: created once, never disposed, reused by Integration
   private awakening: AwakeningState | null = null
-
-  // All other states: created/disposed dynamically as the user scrolls
   private loadedStates = new Map<MindState, AnyState>()
 
   private initialized   = false
@@ -71,9 +67,6 @@ export class WebGLManager {
       this.renderer, this.scene, this.camera, this.capabilities
     )
 
-    // Awakening orb is created immediately — it's visible from t=0
-    // and persists for the entire experience lifetime (Phase 8 spec:
-    // "the orb was always there")
     this.awakening = new AwakeningState(this.scene, this.capabilities)
 
     this.initContextLossHandling()
@@ -101,8 +94,6 @@ export class WebGLManager {
     })
   }
 
-  // ── Main per-frame update ───────────────────────────────
-
   update(time: number, delta: number): void {
     if (!this.initialized || this.isContextLost || this.reducedMotion) return
     this.lastTime = time
@@ -111,17 +102,22 @@ export class WebGLManager {
 
     this.cameraRig.setCameraPositionFromProgress(mindProgress)
     this.cameraRig.update(delta)
-    this.post.update(time)
-    this.updateBloomByProgress(mindProgress)
 
-    // Stream states in/out based on preloadAt / disposeAt thresholds
+    // ── GUARD 1: post may not be initialized yet ──
+    if (this.post) {
+      this.post.update(time)
+      this.updateBloomByProgress(mindProgress)
+    }
+
     this.checkStateStreaming(mindProgress)
 
     const cursorWorld = this.cursorToWorld(cursorNorm)
 
-    // Awakening always updates (it's either the active visual or
-    // sitting hidden, waiting to reappear in Integration)
-    this.awakening?.update(time, delta, this.localProgress(MindState.AWAKENING, mindProgress), cursorNorm)
+    this.awakening?.update(
+      time, delta,
+      this.localProgress(MindState.AWAKENING, mindProgress),
+      cursorNorm
+    )
 
     for (const [stateId, state] of this.loadedStates) {
       const local = this.localProgress(stateId, mindProgress)
@@ -147,7 +143,11 @@ export class WebGLManager {
         case MindState.EXPANSION: {
           const exp = state as ExpansionState
           const cursorSpeed = Math.min(1, scrollVelocity * 2)
-          exp.simulate(this.renderer, delta, { x: cursorWorld.x, y: cursorWorld.y, z: cursorWorld.z }, time, 0)
+          exp.simulate(
+            this.renderer, delta,
+            { x: cursorWorld.x, y: cursorWorld.y, z: cursorWorld.z },
+            time, 0
+          )
           exp.update(time, local, cursorSpeed)
           break
         }
@@ -157,20 +157,18 @@ export class WebGLManager {
       }
     }
 
-    // Visibility: only the state(s) within range of current progress show
     this.updateVisibility(mindProgress)
   }
 
   render(): void {
-    if (!this.initialized || this.isContextLost) return
+    // ── GUARD 2: post may not be initialized yet ──
+    if (!this.initialized || this.isContextLost || !this.post) return
     this.post.render()
   }
 
-  // ── State streaming — load ahead, dispose behind ────────
-
   private checkStateStreaming(mindProgress: number): void {
     for (const config of Object.values(STATE_CONFIGS)) {
-      if (config.id === MindState.AWAKENING) continue // never streamed
+      if (config.id === MindState.AWAKENING) continue
 
       const shouldBeLoaded = mindProgress >= config.preloadAt && mindProgress < config.disposeAt
       const isLoaded        = this.loadedStates.has(config.id)
@@ -214,14 +212,11 @@ export class WebGLManager {
     this.loadedStates.delete(id)
   }
 
-  // ── Visibility — only show states relevant to current progress ──
-
   private updateVisibility(mindProgress: number): void {
-    // Awakening visible at the very start, and again during Integration
     const awakeningConfig   = STATE_CONFIGS[MindState.AWAKENING]
     const integrationConfig = STATE_CONFIGS[MindState.INTEGRATION]
     const inAwakeningRange   = mindProgress <= awakeningConfig.end + 0.02
-    const inIntegrationRange = mindProgress >= integrationConfig.start + 0.06 // orb reappears ~0.92
+    const inIntegrationRange = mindProgress >= integrationConfig.start + 0.06
     this.awakening?.setVisible(inAwakeningRange || inIntegrationRange)
 
     for (const [stateId, state] of this.loadedStates) {
@@ -239,16 +234,13 @@ export class WebGLManager {
   }
 
   private cursorToWorld(cursorNorm: { x: number; y: number }): Vector3 {
-    // Maps normalized screen cursor (0..1) to an approximate world-space
-    // point at the camera's look-at depth. Simplified projection —
-    // sufficient for proximity-based interactions (thread growth,
-    // cursor attraction, focus distance).
     const x = (cursorNorm.x - 0.5) * 4
     const y = -(cursorNorm.y - 0.5) * 4
     return new Vector3(x, y, 0)
   }
 
   private updateBloomByProgress(p: number): void {
+    if (!this.post) return
     if      (p < 0.18) this.post.setBloom(2.4, 0.08, 0.9)
     else if (p < 0.28) this.post.setBloom(1.2, 0.12, 0.6)
     else if (p < 0.42) this.post.setBloom(0.8, 0.15, 1.2)
@@ -258,8 +250,6 @@ export class WebGLManager {
     else if (p < 0.86) this.post.setBloom(2.0, 0.06, 1.4)
     else               this.post.setBloom(2.0, 0.08, 0.8)
   }
-
-  // ── Public API (used by DisorientationOverlay, hooks, etc.) ──
 
   getCameraRigRef(): CameraRig {
     return this.cameraRig
@@ -277,41 +267,34 @@ export class WebGLManager {
     this.reducedMotion = value
   }
 
-  // Called by DisorientationOverlay during the scripted takeover to
-  // force the shard scatter amount directly, bypassing scroll-driven progress
   setDisorientationChaos(value: number): void {
     const state = this.loadedStates.get(MindState.DISORIENTATION) as DisorientationState | undefined
     state?.setChaosOverride(value)
   }
 
-  // Called by DiscoveryContent on click — registers a reveal at the
-  // given normalized screen position
   registerDiscoveryClick(normX: number, normY: number): void {
     const state = this.loadedStates.get(MindState.DISCOVERY) as DiscoveryState | undefined
     state?.registerClick(normX, normY)
   }
 
   reduceParticles(_factor: number): void {
-    // Runtime degradation hook — currently a no-op placeholder since
-    // particle counts are now fixed per-state at construction time
-    // based on device tier. Future: could swap loaded states to a
-    // lower-fidelity variant here.
+    // no-op placeholder
   }
 
   disableSecondaryPasses(): void {
+    // ── GUARD 3: post may not be initialized yet ──
+    if (!this.post) return
     this.post.setBloom(0.8, 0.2)
   }
 
   beginTransition(_from: string, _to: string, _duration: number): void {
-    // Transition visuals are expressed through the streaming load/dispose
-    // + visibility fade windows above, plus GSAP timelines in
-    // TransitionOrchestrator for DOM-side effects.
+    // handled by streaming load/dispose + GSAP timelines
   }
 
   private onResize(): void {
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.cameraRig.resize()
-    this.post.resize()
+    this.post?.resize()
   }
 
   destroy(): void {

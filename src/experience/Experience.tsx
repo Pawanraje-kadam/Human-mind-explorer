@@ -1,24 +1,24 @@
 'use client'
 
-import { useEffect, useRef }          from 'react'
-import { useMindStore }               from '@/store/mindStore'
-import { initAnimationSystem }        from '@/animation'
-import { initPerformanceMonitor }     from '@/animation/PerformanceMonitor'
-import { useReducedMotion }           from '@/hooks/useReducedMotion'
-import { useDeviceCapability }        from '@/hooks/useDeviceCapability'
-import { useCursorPosition }          from '@/hooks/useCursorPosition'
-import { useKeyboardNavigation }      from '@/hooks/useKeyboardNavigation'
-import { AccessibilityLayer }         from '@/components/AccessibilityLayer'
-import { WebGLCanvas }                from '@/components/Canvas'
-import { ProgressSpine }              from '@/components/ProgressSpine'
-import { DiegeticReadout }            from '@/components/DiegeticReadout'
-import { StateContentManager }        from '@/components/StateContentManager'
-import { StateAnnouncer }             from '@/components/StateAnnouncer'
-import { KeyboardNavIndicator }       from '@/components/KeyboardNavIndicator'
-import { EntryGate }                  from './EntryGate'
-import  ScrollContainer             from './ScrollContainer'
-import { ExitPortal }                 from './ExitPortal'
-import { DisorientationOverlay }      from './DisorientationOverlay'
+import { useEffect, useRef }        from 'react'
+import { useMindStore }             from '@/store/mindStore'
+import { initAnimationSystem }      from '@/animation'
+import { initPerformanceMonitor }   from '@/animation/PerformanceMonitor'
+import { useReducedMotion }         from '@/hooks/useReducedMotion'
+import { useDeviceCapability }      from '@/hooks/useDeviceCapability'
+import { useCursorPosition }        from '@/hooks/useCursorPosition'
+import { useKeyboardNavigation }    from '@/hooks/useKeyboardNavigation'
+import { AccessibilityLayer }       from '@/components/AccessibilityLayer'
+import { WebGLCanvas }              from '@/components/Canvas'
+import { ProgressSpine }            from '@/components/ProgressSpine'
+import { DiegeticReadout }          from '@/components/DiegeticReadout'
+import { StateContentManager }      from '@/components/StateContentManager'
+import { StateAnnouncer }           from '@/components/StateAnnouncer'
+import { KeyboardNavIndicator }     from '@/components/KeyboardNavIndicator'
+import { EntryGate }                from './EntryGate'
+import { ScrollContainer }          from './ScrollContainer'
+import { ExitPortal }               from './ExitPortal'
+import { DisorientationOverlay }    from './DisorientationOverlay'
 
 export function Experience() {
   const scrollRef      = useRef<HTMLDivElement>(null)
@@ -31,31 +31,34 @@ export function Experience() {
   useKeyboardNavigation(hasEntered)
 
   useEffect(() => {
-    if (!hasEntered || !scrollRef.current) return
+    if (!hasEntered) return
 
-    let animCleanup:    (() => void) | undefined
-    let monitorCleanup: (() => void) | undefined
+    // Small delay to ensure ScrollContainer is mounted and measured
+    const timer = setTimeout(() => {
+      if (!scrollRef.current) return
 
-    initAnimationSystem(scrollRef.current)
-      .then(fn => { animCleanup = fn })
+      let animCleanup:    (() => void) | undefined
+      let monitorCleanup: (() => void) | undefined
 
-    monitorCleanup = initPerformanceMonitor()
+      initAnimationSystem(scrollRef.current)
+        .then(fn => { animCleanup = fn })
 
-    return () => {
-      animCleanup?.()
-      monitorCleanup?.()
-    }
+      monitorCleanup = initPerformanceMonitor()
+
+      return () => {
+        animCleanup?.()
+        monitorCleanup?.()
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [hasEntered])
 
   return (
     <>
-      {/* Experience B — always in DOM, always accessible to AT */}
       <AccessibilityLayer />
-
-      {/* State change announcements for screen readers */}
       <StateAnnouncer />
 
-      {/* Experience A — visual, aria-hidden from AT */}
       <div
         aria-hidden="true"
         data-tier={capabilities.tier}
@@ -82,7 +85,6 @@ export function Experience() {
         {hasCompleted && <ExitPortal />}
       </div>
 
-      {/* Keyboard nav indicator — outside aria-hidden, visible to AT */}
       <KeyboardNavIndicator />
     </>
   )

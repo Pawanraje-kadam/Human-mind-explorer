@@ -49,7 +49,7 @@ export function Experience() {
         animCleanup?.()
         monitorCleanup?.()
       }
-    }, 100)
+    }, 500)
 
     return () => clearTimeout(timer)
   }, [hasEntered])

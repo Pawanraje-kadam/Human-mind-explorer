@@ -4,6 +4,7 @@ import './globals.css'
 
 const dmSans = DM_Sans({
   subsets:  ['latin'],
+  axes:     ['opsz', 'wght'],
   weight:   ['200', '300', '400', '500'],
   variable: '--font-dm-sans',
   display:  'swap',
@@ -19,16 +20,19 @@ const dmMono = DM_Mono({
 })
 
 export const viewport: Viewport = {
-  width:       'device-width',
+  width:        'device-width',
   initialScale: 1,
-  themeColor:  '#020408',
-  colorScheme: 'dark',
+  themeColor:   '#020408',
+  colorScheme:  'dark',
 }
 
 export const metadata: Metadata = {
   title:       'Human Mind Explorer',
   description: 'An interactive journey through the human mind — from the first spark of consciousness to full integration.',
   keywords:    ['interactive', 'WebGL', 'consciousness', 'mind', 'creative', 'experience'],
+  icons: {
+    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="4" fill="%23F0EEE8"/></svg>',
+  },
   openGraph: {
     title:       'Human Mind Explorer',
     description: 'An interactive journey through the human mind.',

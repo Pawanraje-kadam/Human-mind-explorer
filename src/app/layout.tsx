@@ -2,6 +2,14 @@ import type { Metadata, Viewport } from 'next'
 import { DM_Sans, DM_Mono } from 'next/font/google'
 import './globals.css'
 
+const dmSans = DM_Sans({
+  subsets:  ['latin'],
+  weight:   ['200', '300', '400', '500'],
+  variable: '--font-dm-sans',
+  display:  'swap',
+  preload:  true,
+})
+
 const dmMono = DM_Mono({
   subsets:  ['latin'],
   weight:   ['300', '400'],

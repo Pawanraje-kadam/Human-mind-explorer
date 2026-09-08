@@ -14,6 +14,7 @@ interface MindStore {
   setTransitioning: (value: boolean) => void
   markEntered:      () => void
   markCompleted:    () => void
+  setCompleted:     (value: boolean) => void
   markInteracted:   (state: MindState) => void
 }
 
@@ -35,6 +36,7 @@ export const useMindStore = create<MindStore>()(
     setTransitioning: (value) => set({ isTransitioning: value }),
     markEntered:      () => set({ hasEntered: true }),
     markCompleted:    () => set({ hasCompleted: true }),
+    setCompleted:     (value) => set({ hasCompleted: value }),
     markInteracted:   (state) =>
       set(prev => ({
         interactionFlags: { ...prev.interactionFlags, [state]: true },

@@ -1,5 +1,6 @@
 import {
   IcosahedronGeometry,
+  BufferGeometry,
   BufferAttribute,
   ShaderMaterial,
   Mesh,
@@ -18,7 +19,7 @@ import type { DeviceCapabilities } from '../../types/mind'
 // its own 3 unique vertices), so the (1,0,0)/(0,1,0)/(0,0,1) pattern
 // can be assigned directly per vertex-triple.
 
-function addBarycentricAttribute(geometry: IcosahedronGeometry): void {
+function addBarycentricAttribute(geometry: BufferGeometry): void {
   const vertexCount = geometry.attributes.position.count
   const barycentric = new Float32Array(vertexCount * 3)
 
@@ -35,17 +36,16 @@ function addBarycentricAttribute(geometry: IcosahedronGeometry): void {
 }
 
 export class ClarityState {
-  private geometry: IcosahedronGeometry
+  private geometry: BufferGeometry
   private material: ShaderMaterial
   public  mesh:      Mesh
 
   private rotationSpeed = { x: 0.002, y: 0.005 }
 
   constructor(scene: Scene, _capabilities: DeviceCapabilities) {
-    // detail level 1, non-indexed by default in modern Three.js —
-    // verified required for the per-triangle barycentric trick to work
-    this.geometry = new IcosahedronGeometry(0.3, 1)
-    this.geometry = this.geometry.toNonIndexed() as any
+    // Non-indexed geometry is required for the per-triangle
+    // barycentric wireframe trick to work.
+    this.geometry = new IcosahedronGeometry(0.3, 1).toNonIndexed()
     addBarycentricAttribute(this.geometry)
 
     this.material = new ShaderMaterial({
@@ -71,6 +71,7 @@ export class ClarityState {
 
   update(
     time: number,
+    delta: number,
     stateProgress: number,
     cursorWorld: Vector3,
     cursorStillSeconds: number
@@ -79,13 +80,15 @@ export class ClarityState {
     u.uTime.value     = time
     u.uProgress.value = stateProgress
 
-    // Subtle breathing scale — barely perceptible (Phase 8 spec: ±0.008)
+    // Subtle breathing scale — barely perceptible (±0.008)
     u.uBreath.value = 1 + Math.sin(time * 0.3) * 0.008
 
-    // Rotation slows during sustained cursor stillness
+    // Delta-time rotation (was per-frame — spun 2× too fast on 120Hz
+    // displays). Sustained cursor stillness (>3s) draws the form to a
+    // near stop: what you look at stops performing.
     const slowFactor = cursorStillSeconds > 3 ? 0.2 : 1
-    this.mesh.rotation.y += this.rotationSpeed.y * slowFactor
-    this.mesh.rotation.x += this.rotationSpeed.x * slowFactor
+    this.mesh.rotation.y += this.rotationSpeed.y * slowFactor * delta * 60
+    this.mesh.rotation.x += this.rotationSpeed.x * slowFactor * delta * 60
 
     ;(u.uCursorWorld.value as Vector3).copy(cursorWorld)
     u.uFocusDist.value = this.mesh.position.distanceTo(cursorWorld) / 2

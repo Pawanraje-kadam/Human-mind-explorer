@@ -3,6 +3,7 @@ import { ScrollTrigger }       from 'gsap/ScrollTrigger'
 import { setRawProgress }      from './Ticker'
 import { checkStateBoundary }  from './StateBoundary'
 import { progressStore }       from '@/store/progressStore'
+import { useMindStore }        from '@/store/mindStore'
 import { STATE_CONFIGS }       from '@/lib/stateConfigs'
 import { MindState }           from '@/types/mind'
 import { clamp }               from '@/lib/math'
@@ -10,6 +11,9 @@ import { clamp }               from '@/lib/math'
 gsap.registerPlugin(ScrollTrigger)
 
 export function initScrollEngine(container: HTMLElement): () => void {
+  const markCompleted = () => useMindStore.getState().markCompleted()
+  const setCompleted  = (v: boolean) => useMindStore.getState().setCompleted(v)
+
   const trigger = ScrollTrigger.create({
     trigger: container,
     start:   'top top',
@@ -25,21 +29,39 @@ export function initScrollEngine(container: HTMLElement): () => void {
       checkStateBoundary(self.progress)
     },
 
-    onLeave:     () => progressStore.set({ isScrolling: false }),
+    // Journey complete → ExitPortal. Scrolling back up dismisses it,
+    // so the Return trip stays explorable.
+    onLeave:     () => {
+      markCompleted()
+      progressStore.set({ isScrolling: false })
+    },
+    onEnterBack: () => setCompleted(false),
     onLeaveBack: () => progressStore.set({ isScrolling: false }),
   })
 
-  initComponentPreloader()
+  // Sync immediately — the user may already be scrolled mid-journey
+  // if this engine initialised late (React strict-mode remount, etc.)
+  setRawProgress(trigger.progress)
+  checkStateBoundary(trigger.progress)
 
-  return () => trigger.kill()
+  const stopPreloader = initComponentPreloader()
+
+  const onLoad = () => ScrollTrigger.refresh()
+  window.addEventListener('load', onLoad)
+
+  return () => {
+    stopPreloader()
+    window.removeEventListener('load', onLoad)
+    trigger.kill()
+  }
 }
 
-function initComponentPreloader(): void {
+function initComponentPreloader(): () => void {
   const thresholds = Object.values(STATE_CONFIGS)
     .filter(c => c.id !== MindState.AWAKENING)
     .map(c => ({ id: c.id, at: c.preloadAt, done: false }))
 
-  progressStore.subscribe(({ mindProgress }) => {
+  return progressStore.subscribe(({ mindProgress }) => {
     for (const t of thresholds) {
       if (!t.done && mindProgress >= t.at) {
         t.done = true

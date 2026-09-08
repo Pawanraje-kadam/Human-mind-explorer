@@ -5,7 +5,10 @@ import { progressStore } from '@/store/progressStore'
 
 export function useCursorPosition(): void {
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
+    // pointermove covers mouse, pen, and touch-drag — Recognition's
+    // threads and Expansion's rivers respond on touchscreens too
+    // (the previous mousemove-only listener ignored them entirely)
+    const onMove = (e: PointerEvent) => {
       progressStore.set({
         cursorNorm: {
           x: e.clientX / window.innerWidth,
@@ -13,7 +16,7 @@ export function useCursorPosition(): void {
         },
       })
     }
-    window.addEventListener('mousemove', onMove, { passive: true })
-    return () => window.removeEventListener('mousemove', onMove)
+    window.addEventListener('pointermove', onMove, { passive: true })
+    return () => window.removeEventListener('pointermove', onMove)
   }, [])
 }

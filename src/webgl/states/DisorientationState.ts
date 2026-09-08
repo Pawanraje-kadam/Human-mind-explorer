@@ -26,6 +26,7 @@ export class DisorientationState {
   private group: Group
   private shards: Shard[] = []
   private chaos = 0
+  private chaosOverride: number | null = null
 
   constructor(scene: Scene, capabilities: DeviceCapabilities) {
     this.group = new Group()
@@ -78,9 +79,14 @@ export class DisorientationState {
   }
 
   update(time: number, stateProgress: number): void {
-    // uChaos ramps 0→1 over first ~12% of state (0.42→0.47 in global terms,
-    // here expressed as stateProgress 0.0→0.28 since state spans 0.42-0.50)
-    this.chaos = Math.min(1, stateProgress / 0.28)
+    // uChaos ramps 0→1 over first ~28% of state — unless the scripted
+    // takeover is forcing a value (previously the override set the same
+    // field update() immediately recomputed, so it never had an effect)
+    if (this.chaosOverride !== null) {
+      this.chaos = this.chaosOverride
+    } else {
+      this.chaos = Math.min(1, stateProgress / 0.28)
+    }
 
     for (const shard of this.shards) {
       const mat = shard.mesh.material as ShaderMaterial
@@ -102,7 +108,11 @@ export class DisorientationState {
   // Called by DisorientationOverlay's GSAP timeline during the
   // scripted 3s takeover to force a freeze/reassembly motion
   setChaosOverride(value: number): void {
-    this.chaos = value
+    this.chaosOverride = value
+  }
+
+  clearChaosOverride(): void {
+    this.chaosOverride = null
   }
 
   setVisible(visible: boolean): void {

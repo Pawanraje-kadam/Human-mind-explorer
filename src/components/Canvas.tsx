@@ -6,18 +6,26 @@ import { useDeviceCapability } from '@/hooks/useDeviceCapability'
 import { WebGLErrorBoundary }  from './WebGLErrorBoundary'
 
 function WebGLCanvasInner() {
-  const ref              = useRef<HTMLCanvasElement>(null)
-  const cap              = useDeviceCapability()
-  const [contextLost, setContextLost] = useState(false)
+  const ref = useRef<HTMLCanvasElement>(null)
+  const cap = useDeviceCapability()
+  const [contextFailed, setContextFailed] = useState(false)
 
   useEffect(() => {
-    if (!ref.current || cap.tier === 'low') return
+    // Wait for the capability probe — never spin up WebGL on a guess.
+    if (!ref.current || !cap || cap.tier === 'low') return
 
     const mgr = WebGLManager.getInstance()
-    mgr.initialize(ref.current).catch(console.error)
 
-    const onLost   = () => setContextLost(true)
-    const onFailed = () => { throw new Error('WebGL context failed to restore') }
+    try {
+      mgr.initialize(ref.current, cap)
+    } catch (err) {
+      console.error('[HME] WebGL init failed', err)
+      setContextFailed(true)
+      return
+    }
+
+    const onLost   = () => { /* manager self-heals on restore */ }
+    const onFailed = () => setContextFailed(true)
 
     window.addEventListener('hme:contextlost',   onLost)
     window.addEventListener('hme:contextfailed', onFailed)
@@ -27,9 +35,25 @@ function WebGLCanvasInner() {
       window.removeEventListener('hme:contextlost',   onLost)
       window.removeEventListener('hme:contextfailed', onFailed)
     }
-  }, [cap.tier])
+  }, [cap])
 
-  if (cap.tier === 'low') return null
+  // Still probing, or a genuinely GL-less device — the DOM text
+  // journey carries the experience either way.
+  if (!cap || cap.tier === 'low') return null
+
+  if (contextFailed) {
+    return (
+      <button
+        onClick={() => window.location.reload()}
+        className="fixed bottom-[8vh] left-1/2 -translate-x-1/2 z-40
+                   font-mono text-xs text-neural-silver tracking-[0.08em]
+                   hover:text-neural-white transition-colors duration-[400ms]
+                   px-4 py-3 min-h-[44px]"
+      >
+        the mind lost its thread. tap to restore.
+      </button>
+    )
+  }
 
   return (
     <canvas

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import gsap from 'gsap'
+import '@/animation/Easings' // registers mind.* eases before first tween
 import { progressStore }    from '@/store/progressStore'
 import { useMindStore }     from '@/store/mindStore'
 import { STATE_CONFIGS, STATE_CONTENT } from '@/lib/stateConfigs'
@@ -183,13 +184,18 @@ export function useStateContent({
       ctxRef.current?.revert()
       animatedRef.current = false
     }
-  }, [state, prefersReduced])
+  }, [state, prefersReduced, headlineRef, breathRef, content])
 
-  // Fade out at end of state
+  // Fade out at end of state — and restore when scrolling back in,
+  // so a return visit up the journey doesn't find a half-faded text
   useEffect(() => {
+    let faded = false
+
     return progressStore.subscribe(({ mindProgress }) => {
       const sp = stateProgress(mindProgress, config.start, config.end)
+
       if (sp > 0.85) {
+        faded = true
         const fade = (sp - 0.85) / 0.15
         const op   = 1.0 - fade
 
@@ -203,6 +209,10 @@ export function useStateContent({
             Math.max(0, op * BREATH_OPACITY[state])
           )
         }
+      } else if (faded) {
+        faded = false
+        if (headlineRef.current) headlineRef.current.style.opacity = ''
+        if (breathRef?.current)  breathRef.current.style.opacity  = ''
       }
     })
   }, [state, config, headlineRef, breathRef])

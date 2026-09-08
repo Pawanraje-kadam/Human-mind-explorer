@@ -22,7 +22,7 @@ export default function ExpansionContent() {
     let lastX = 0
     let lastY = 0
 
-    const handler = (e: MouseEvent) => {
+    const handler = (e: PointerEvent) => {
       const dx = e.clientX - lastX
       const dy = e.clientY - lastY
       const speed = Math.sqrt(dx * dx + dy * dy)
@@ -31,8 +31,8 @@ export default function ExpansionContent() {
       if (speed > 8) onInteract()
     }
 
-    window.addEventListener('mousemove', handler, { passive: true })
-    return () => window.removeEventListener('mousemove', handler)
+    window.addEventListener('pointermove', handler, { passive: true })
+    return () => window.removeEventListener('pointermove', handler)
   }, [onInteract])
 
   return (

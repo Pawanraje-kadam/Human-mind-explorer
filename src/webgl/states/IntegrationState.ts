@@ -48,19 +48,17 @@ export class IntegrationState {
     const u = this.material.uniforms
     u.uTime.value = time
 
-    // Blend weights ramp in sequence per Phase 8 timing:
-    // Family 1: 0.87→0.89 (state-local: 0.01→0.03 within INTEGRATION 0.86-1.0)
-    // Family 2: 0.88→0.90
-    // Family 3: 0.89→0.91
-    // Family 4: 0.90→0.92
-    // Converted to state-local progress (state spans 0.86 to 1.00):
-    u.uBlend1.value = rampStateLocal(stateProgress, 0.007, 0.021)
-    u.uBlend2.value = rampStateLocal(stateProgress, 0.014, 0.029)
-    u.uBlend3.value = rampStateLocal(stateProgress, 0.021, 0.036)
-    u.uBlend4.value = rampStateLocal(stateProgress, 0.029, 0.043)
+    // Each visual family returns in turn — global progress
+    // 0.87→0.92 over the state's 0.84→1.00 window (local ramps below).
+    // The previous constants were 10× too small and all four families
+    // snapped on within the first ~4% of the state.
+    u.uBlend1.value = smooth01(ramp(stateProgress, 0.19, 0.31))
+    u.uBlend2.value = smooth01(ramp(stateProgress, 0.25, 0.38))
+    u.uBlend3.value = smooth01(ramp(stateProgress, 0.31, 0.44))
+    u.uBlend4.value = smooth01(ramp(stateProgress, 0.38, 0.50))
 
     // Convergence toward neural-white ramps through the back half
-    u.uConverge.value = Math.max(0, (stateProgress - 0.5) / 0.5)
+    u.uConverge.value = smooth01(ramp(stateProgress, 0.55, 0.95))
   }
 
   setVisible(visible: boolean): void {
@@ -73,8 +71,12 @@ export class IntegrationState {
   }
 }
 
-function rampStateLocal(stateProgress: number, start: number, end: number): number {
-  if (stateProgress <= start) return 0
-  if (stateProgress >= end)   return 1
-  return (stateProgress - start) / (end - start)
+function ramp(value: number, start: number, end: number): number {
+  if (value <= start) return 0
+  if (value >= end)   return 1
+  return (value - start) / (end - start)
+}
+
+function smooth01(t: number): number {
+  return t * t * (3 - 2 * t)
 }

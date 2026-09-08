@@ -1,30 +1,23 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef } from 'react'
 import { MindState }       from '@/types/mind'
 import { ThoughtText }     from '@/components/ThoughtText'
 import { useStateContent } from '@/hooks/useStateContent'
 import { STATE_CONTENT }   from '@/lib/stateConfigs'
-import { useMindStore }    from '@/store/mindStore'
-import { progressStore }   from '@/store/progressStore'
 
 export default function IntegrationContent() {
   const headlineRef  = useRef<HTMLElement>(null)
   const breathRef    = useRef<HTMLElement>(null)
   const state         = MindState.INTEGRATION
-  const markCompleted = useMindStore(s => s.markCompleted)
 
   useStateContent({ state, headlineRef, breathRef })
 
   const content = STATE_CONTENT[state]
 
-  // Mark the experience complete near the very end of scroll —
-  // ExitPortal mounts in response to this
-  useEffect(() => {
-    return progressStore.subscribe(({ mindProgress }) => {
-      if (mindProgress >= 0.995) markCompleted()
-    })
-  }, [markCompleted])
+  // Completion (ExitPortal) is owned by ScrollEngine's onLeave /
+  // onEnterBack — reaching the very bottom opens the portal, and
+  // scrolling back up dismisses it again.
 
   return (
     <>

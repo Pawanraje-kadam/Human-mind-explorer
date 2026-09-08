@@ -58,9 +58,9 @@ body[data-gate-active='true'] {
   --spectrum-teal:   #20a8a0;
   --spectrum-lime:   #80c840;
 
-  /* Semantic — updated by JS */
+  /* Semantic — updated by JS at state boundaries (lib/stateTheme.ts) */
   --state-primary: var(--neural-white);
-  --state-accent:  transparent;
+  --state-accent:  var(--neural-white);
   --state-bg:      var(--void-black);
 
   /* Spacing */

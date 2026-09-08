@@ -113,18 +113,24 @@ React reconciliation never competes with the animation frame.
 ### device tiers
 
 | Tier | Detection | Particles | Post-processing |
-|------|-----------|-----------|----------------|
-| High | 8+ cores, 8GB RAM, GPU score >14 | 150,000 | Bloom + Vignette + Film grain |
-| Mid  | 4+ cores, GPU score >8 | 60,000 | Bloom + Vignette |
-| Low  | Below mid | 0 (WebGL disabled) | CSS fallback |
+|------|-----------|-----------|-----------------|
+| High | 8+ cores, 8GB RAM, sustained ≥56fps probe | 80,000 GPGPU + 4,000 ambient | Bloom + ACES Output + Vignette + Film grain |
+| Mid  | 4+ cores, sustained ≥33fps probe | 40,000 CPU + 1,500 ambient | Bloom + ACES Output + Vignette |
+| Low  | No WebGL / below mid | 0 (WebGL disabled) | CSS/DOM fallback |
+
+The GPU probe measures real display throughput over 12 rAF frames
+(frames-per-second ÷ 4 → a 0–20 score), so a healthy 60Hz device
+scores ~15 and lands in the intended tier. Runtime degradation is
+automatic: if sustained fps drops below 50, the renderer drops to
+1× pixel ratio and sheds the grain pass.
 
 ---
 
 ## stack
 
 ```
-Next.js 14      App Router, edge OG image generation, next/font
-Three.js 0.166  WebGL renderer, custom GLSL shaders, EffectComposer
+Next.js 14      App Router, static OG image generation, self-hosted fonts
+Three.js 0.166  WebGL renderer, custom GLSL shaders, EffectComposer + OutputPass
 GSAP 3.12       Single RAF loop, ScrollTrigger, CustomEase, SplitText*
 Zustand 4.5     Discrete state with subscribeWithSelector
 TypeScript 5.5  Strict mode throughout
@@ -167,9 +173,9 @@ src/
 │   └── ExitPortal.tsx      Post-experience reflection
 ├── webgl/                  Three.js — never imports React
 │   ├── WebGLManager.ts     Singleton renderer + lifecycle
-│   ├── CameraRig.ts        Spline-based camera controller
-│   ├── ParticleSystem.ts   Persistent 150k particle system
-│   ├── PostProcessing.ts   EffectComposer + bloom + vignette
+│   ├── CameraRig.ts        Waypoint camera controller
+│   ├── ParticleField.ts    Persistent ambient particle field
+│   ├── PostProcessing.ts   EffectComposer + bloom + output + vignette
 │   └── shaders/            GLSL per state
 ├── animation/              GSAP — never imports React components
 │   ├── Ticker.ts           Single RAF loop (GSAP-driven)

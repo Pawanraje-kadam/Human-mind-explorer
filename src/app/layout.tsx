@@ -1,18 +1,26 @@
 import type { Metadata, Viewport } from 'next'
-import { DM_Sans, DM_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 
-const dmSans = DM_Sans({
-  subsets:  ['latin'],
-  weight:   ['200', '300', '400', '500'],
+// Self-hosted (SIL OFL, via @fontsource). Zero external requests at
+// build or runtime — LCP font arrives from our own origin, preloaded.
+const dmSans = localFont({
+  src: [
+    { path: '../assets/fonts/dm-sans-latin-200-normal.woff2', weight: '200', style: 'normal' },
+    { path: '../assets/fonts/dm-sans-latin-300-normal.woff2', weight: '300', style: 'normal' },
+    { path: '../assets/fonts/dm-sans-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: '../assets/fonts/dm-sans-latin-500-normal.woff2', weight: '500', style: 'normal' },
+  ],
   variable: '--font-dm-sans',
   display:  'swap',
   preload:  true,
 })
 
-const dmMono = DM_Mono({
-  subsets:  ['latin'],
-  weight:   ['300', '400'],
+const dmMono = localFont({
+  src: [
+    { path: '../assets/fonts/dm-mono-latin-300-normal.woff2', weight: '300', style: 'normal' },
+    { path: '../assets/fonts/dm-mono-latin-400-normal.woff2', weight: '400', style: 'normal' },
+  ],
   variable: '--font-dm-mono',
   display:  'swap',
   preload:  false,
@@ -26,6 +34,9 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  ),
   title:       'Human Mind Explorer',
   description: 'An interactive journey through the human mind — from the first spark of consciousness to full integration.',
   keywords:    ['interactive', 'WebGL', 'consciousness', 'mind', 'creative', 'experience'],

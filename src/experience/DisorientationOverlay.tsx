@@ -2,6 +2,7 @@
 
 import { useEffect, useRef }   from 'react'
 import gsap                    from 'gsap'
+import '@/animation/Easings' // registers mind.* eases before first tween
 import { useMindStore }        from '@/store/mindStore'
 import { progressStore }       from '@/store/progressStore'
 import { WebGLManager }        from '@/webgl/WebGLManager'

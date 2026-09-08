@@ -22,8 +22,8 @@ export function initPerformanceMonitor(): () => void {
       totalTime += frameTime
     }
 
-    // Evaluate every 60 frames (~1 second)
-    if (frameCount > 0 && frameCount % 60 === 0) {
+    // Evaluate roughly once per second
+    if (frameCount >= 60) {
       const avg   = totalTime / frameCount
       totalTime   = 0
       frameCount  = 0
@@ -44,9 +44,10 @@ function applyDegradation(): void {
     console.info('[HME] Performance below 50fps — reducing quality')
   }
 
-  WebGLManager.getInstance().reduceParticles(0.5)
-  WebGLManager.getInstance().disableSecondaryPasses()
+  // Real, measurable relief: 1× pixel ratio + grain pass off
+  WebGLManager.getInstance().degradeQuality()
 
+  // And make the scroll feel snappier on the degraded path
   Object.keys(LERP_SPEEDS).forEach(key => {
     LERP_SPEEDS[key as MindState] = Math.max(
       LERP_SPEEDS[key as MindState] * 0.7,

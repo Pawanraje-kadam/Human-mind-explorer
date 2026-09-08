@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useEffect, useRef } from 'react'
+import { forwardRef } from 'react'
 
 export const ScrollContainer = forwardRef<HTMLDivElement>(
   function ScrollContainer(_, ref) {
@@ -8,10 +8,11 @@ export const ScrollContainer = forwardRef<HTMLDivElement>(
       <div
         ref={ref}
         aria-hidden="true"
+        data-scroll-container
         style={{
-          height:       '800vh',
-          width:        '100%',
-          position:     'relative',
+          height:        '800vh',
+          width:         '100%',
+          position:      'relative',
           pointerEvents: 'none',
         }}
       />

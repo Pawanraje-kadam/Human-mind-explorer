@@ -9,6 +9,7 @@ import { EffectComposer }  from 'three/examples/jsm/postprocessing/EffectCompose
 import { RenderPass }      from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { ShaderPass }      from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { OutputPass }      from 'three/examples/jsm/postprocessing/OutputPass.js'
 import type { DeviceCapabilities } from '@/types/mind'
 
 const VignetteShader = {
@@ -72,9 +73,11 @@ const FilmGrainShader = {
 export class PostProcessing {
   private composer:      EffectComposer
   private bloomPass:     UnrealBloomPass
+  private outputPass:    OutputPass
   private vignettePass:  ShaderPass
   private grainPass:     ShaderPass
   private capabilities:  DeviceCapabilities
+  private degraded       = false
 
   public bloomStrength     = 2.4
   public bloomThreshold    = 0.08
@@ -99,17 +102,22 @@ export class PostProcessing {
       this.bloomRadius,
       this.bloomThreshold
     )
-    if (capabilities.usePostProcessing) {
-      this.composer.addPass(this.bloomPass)
-    }
+    this.bloomPass.enabled = capabilities.usePostProcessing
+    this.composer.addPass(this.bloomPass)
 
+    // Linear → sRGB + ACES tone mapping. Without this the composer
+    // writes linear values straight to screen and every state looks
+    // washed out — previous builds rendered the whole journey this way.
+    this.outputPass = new OutputPass()
+    this.composer.addPass(this.outputPass)
+
+    // Vignette + grain operate in display space, after tone mapping.
     this.vignettePass = new ShaderPass(VignetteShader)
     this.composer.addPass(this.vignettePass)
 
     this.grainPass = new ShaderPass(FilmGrainShader)
-    if (capabilities.tier === 'high') {
-      this.composer.addPass(this.grainPass)
-    }
+    this.grainPass.enabled = capabilities.tier === 'high'
+    this.composer.addPass(this.grainPass)
   }
 
   update(time: number): void {
@@ -141,6 +149,16 @@ export class PostProcessing {
     this.grainIntensity = intensity
   }
 
+  // Performance-monitor degrade path: shed the grain pass entirely
+  // and clamp bloom cost instead of just retuning strengths.
+  setDegraded(value: boolean): void {
+    if (this.degraded === value) return
+    this.degraded = value
+
+    this.grainPass.enabled = !value && this.capabilities.tier === 'high'
+    if (value) this.setBloom(0.8, 0.2, 0.4)
+  }
+
   render(): void {
     this.composer.render()
   }
@@ -151,6 +169,9 @@ export class PostProcessing {
   }
 
   dispose(): void {
+    this.bloomPass.dispose()
+    this.vignettePass.dispose()
+    this.grainPass.dispose()
     this.composer.dispose()
   }
 }

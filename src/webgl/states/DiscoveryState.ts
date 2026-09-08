@@ -51,19 +51,18 @@ export class DiscoveryState {
     scene.add(this.mesh)
   }
 
-  update(time: number, stateProgress: number): void {
+  update(time: number, delta: number, stateProgress: number): void {
     const u = this.material.uniforms
     u.uTime.value     = time
     u.uProgress.value = stateProgress
 
-    // Advance and merge active reveals — fragment shader currently
-    // only consumes a single center/radius pair, so we render the
-    // most recent unfinished reveal (simple, performant approximation
-    // of the "up to 8 reveals" spec — see note below)
+    // Delta-time reveal expansion — ~1.2 seconds per reveal ring
+    // (was a fixed increment per frame: 2× fast on 120Hz displays)
+    const rate = delta / 1.2
     for (const reveal of this.reveals) {
-      reveal.progress = Math.min(1, reveal.progress + 0.02)
+      reveal.progress = Math.min(1, reveal.progress + rate)
     }
-    this.reveals = this.reveals.filter(r => r.progress < 1 || this.reveals.length <= 1)
+    this.reveals = this.reveals.filter((r, i, arr) => r.progress < 1 || i === arr.length - 1)
 
     const active = this.reveals[this.reveals.length - 1]
     if (active) {

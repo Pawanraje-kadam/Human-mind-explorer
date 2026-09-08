@@ -50,9 +50,8 @@ export const ThoughtText = forwardRef<HTMLElement, ThoughtTextProps>(
     } : {}
 
     return (
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       <Tag
-        ref={ref as any}
+        ref={ref as React.Ref<HTMLHeadingElement>}
         data-text-role={role}
         data-state={state}
         className={[

@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og'
 
-export const runtime     = 'edge'
+// Node runtime → the OG image is prerendered statically at build time
+export const runtime     = 'nodejs'
 export const alt         = 'Human Mind Explorer — An interactive journey through the human mind'
 export const size        = { width: 1200, height: 630 }
 export const contentType = 'image/png'

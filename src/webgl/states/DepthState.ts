@@ -19,8 +19,10 @@ export class DepthState {
   private layers: Mesh[] = []
   private group:  Group
   private fog:    FogExp2
+  private scene:  Scene
 
   constructor(scene: Scene, capabilities: DeviceCapabilities) {
+    this.scene = scene
     this.group = new Group()
     scene.add(this.group)
 
@@ -79,9 +81,14 @@ export class DepthState {
 
   setVisible(visible: boolean): void {
     this.group.visible = visible
+    if (!visible) this.fog.density = 0
   }
 
   dispose(): void {
+    // Hand the scene back its original (empty) fog — previously this
+    // leaked a FogExp2 onto the scene for the rest of the journey.
+    if (this.scene.fog === this.fog) this.scene.fog = null
+
     for (const layer of this.layers) {
       layer.geometry.dispose()
       ;(layer.material as ShaderMaterial).dispose()

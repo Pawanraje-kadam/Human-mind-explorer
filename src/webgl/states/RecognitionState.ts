@@ -1,11 +1,9 @@
 import {
   BufferGeometry,
   BufferAttribute,
+  DynamicDrawUsage,
   ShaderMaterial,
   LineSegments,
-  SphereGeometry,
-  Mesh,
-  InstancedMesh,
   Scene,
   Color,
   Vector3,
@@ -47,7 +45,10 @@ export class RecognitionState {
     const positions = new Float32Array(maxVerts * 3)
 
     this.geometry = new BufferGeometry()
-    this.geometry.setAttribute('position', new BufferAttribute(positions, 3))
+    this.geometry.setAttribute(
+      'position',
+      new BufferAttribute(positions, 3).setUsage(DynamicDrawUsage)
+    )
 
     this.material = new ShaderMaterial({
       vertexShader:   passthroughVertex,
@@ -63,6 +64,7 @@ export class RecognitionState {
     })
 
     this.lines = new LineSegments(this.geometry, this.material)
+    this.lines.frustumCulled = false // geometry is rewritten every frame
     scene.add(this.lines)
 
     for (let i = 0; i < this.threadCount; i++) {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react'
 import gsap                from 'gsap'
+import '@/animation/Easings' // registers mind.* eases before first tween
 import { useMindStore }    from '@/store/mindStore'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
@@ -99,16 +100,29 @@ export function EntryGate() {
     })
   }, [markEntered, prefersReduced])
 
-  // Any input enters — keyboard, touch, click
+  // Any input enters — keyboard, touch, click.
+  // Exception: Tab is reserved so keyboard users can orient first.
   useEffect(() => {
-    const handler = () => enter()
-    window.addEventListener('keydown',  handler, { once: true })
-    window.addEventListener('touchend', handler, { once: true })
-    window.addEventListener('click',    handler, { once: true })
+    const SCROLL_KEYS = new Set([
+      ' ', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight',
+      'PageDown', 'PageUp', 'Home', 'End',
+    ])
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') return
+      // Stop the entering keypress from also scrolling the journey
+      if (SCROLL_KEYS.has(e.key)) e.preventDefault()
+      enter()
+    }
+    const onPointer = () => enter()
+
+    window.addEventListener('keydown',  onKey)
+    window.addEventListener('touchend', onPointer)
+    window.addEventListener('click',    onPointer)
     return () => {
-      window.removeEventListener('keydown',  handler)
-      window.removeEventListener('touchend', handler)
-      window.removeEventListener('click',    handler)
+      window.removeEventListener('keydown',  onKey)
+      window.removeEventListener('touchend', onPointer)
+      window.removeEventListener('click',    onPointer)
     }
   }, [enter])
 

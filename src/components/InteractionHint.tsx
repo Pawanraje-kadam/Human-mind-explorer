@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
+import '@/animation/Easings' // registers mind.* eases before first tween
 import { progressStore } from '@/store/progressStore'
 
 interface InteractionHintProps {

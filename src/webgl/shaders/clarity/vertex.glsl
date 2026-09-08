@@ -3,23 +3,19 @@ uniform float uBreath;
 
 attribute vec3 aBarycentric;
 
-varying vec2  vUv;
-varying vec3  vWorldPos;
-varying float vBary;
+varying vec2 vUv;
+varying vec3 vBarycentric;
 
 void main() {
   vUv = uv;
 
-  // Minimum of the three barycentric components.
-  // At triangle edges, one component approaches 0 — this drives
-  // the wireframe line in the fragment shader.
-  vBary = min(aBarycentric.x, min(aBarycentric.y, aBarycentric.z));
+  // Pass the barycentric VECTOR through — per-vertex min() would be 0
+  // at every corner and the wireframe could never appear. Edge
+  // distance must be measured after interpolation, in the fragment.
+  vBarycentric = aBarycentric;
 
   // Subtle breathing scale — the form is alive, barely
   vec3 breathedPosition = position * uBreath;
 
-  vec4 worldPos = modelMatrix * vec4(breathedPosition, 1.0);
-  vWorldPos = worldPos.xyz;
-
-  gl_Position = projectionMatrix * viewMatrix * worldPos;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(breathedPosition, 1.0);
 }

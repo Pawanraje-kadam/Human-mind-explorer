@@ -33,25 +33,34 @@ export function Experience() {
   useEffect(() => {
     if (!hasEntered) return
 
-    // Small delay to ensure ScrollContainer is mounted and measured
-    const timer = setTimeout(() => {
-      if (!scrollRef.current) return
+    let disposed       = false
+    let animCleanup:    (() => void) | undefined
+    let monitorCleanup: (() => void) | undefined
 
-      let animCleanup:    (() => void) | undefined
-      let monitorCleanup: (() => void) | undefined
+    // One rAF is enough for the ScrollContainer to be laid out —
+    // the previous 500ms setTimeout left an arbitrary dead window
+    // where scrolling did nothing.
+    const raf = requestAnimationFrame(() => {
+      if (disposed || !scrollRef.current) return
 
       initAnimationSystem(scrollRef.current)
-        .then(fn => { animCleanup = fn })
+        .then(fn => {
+          // The effect may have been torn down while the async
+          // initialiser ran (strict mode) — dispose immediately.
+          if (disposed) fn()
+          else animCleanup = fn
+        })
 
       monitorCleanup = initPerformanceMonitor()
+      if (disposed) { monitorCleanup(); monitorCleanup = undefined }
+    })
 
-      return () => {
-        animCleanup?.()
-        monitorCleanup?.()
-      }
-    }, 500)
-
-    return () => clearTimeout(timer)
+    return () => {
+      disposed = true
+      cancelAnimationFrame(raf)
+      animCleanup?.()
+      monitorCleanup?.()
+    }
   }, [hasEntered])
 
   return (
@@ -61,7 +70,7 @@ export function Experience() {
 
       <div
         aria-hidden="true"
-        data-tier={capabilities.tier}
+        data-tier={capabilities?.tier ?? 'detecting'}
         data-reduced-motion={String(prefersReduced)}
         className="relative w-full"
       >

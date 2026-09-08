@@ -39,31 +39,26 @@ const JOURNEY_NARRATIVE: Record<MindState, {
   },
 }
 
+const skipLinkClass =
+  'sr-only focus:not-sr-only focus:fixed focus:z-[100] focus:p-4 ' +
+  'focus:bg-[#020408] focus:text-[#F0EEE8] ' +
+  'focus:outline focus:outline-2 focus:outline-[#F0EEE8]'
+
 export function AccessibilityLayer() {
   return (
-    <div className="sr-only" aria-label="Human Mind Explorer — Accessible Version">
-
+    <>
+      {/* Skip links live OUTSIDE the sr-only block — a clipped parent
+          would swallow them visually even when focused. */}
       <nav aria-label="Skip navigation">
-        <a
-          href="#mind-journey"
-          className="focus:not-sr-only focus:fixed focus:top-4
-                     focus:left-4 focus:z-[100] focus:p-4
-                     focus:bg-[#020408] focus:text-[#F0EEE8]
-                     focus:outline focus:outline-2 focus:outline-[#F0EEE8]"
-        >
+        <a href="#mind-journey"        className={`${skipLinkClass} focus:top-4 focus:left-4`}>
           Skip to journey content
         </a>
-        <a
-          href="#experience-summary"
-          className="focus:not-sr-only focus:fixed focus:top-4
-                     focus:left-32 focus:z-[100] focus:p-4
-                     focus:bg-[#020408] focus:text-[#F0EEE8]
-                     focus:outline focus:outline-2 focus:outline-[#F0EEE8]"
-        >
+        <a href="#experience-summary"  className={`${skipLinkClass} focus:top-4 focus:left-40`}>
           Skip to summary
         </a>
       </nav>
 
+      <div className="sr-only" aria-label="Human Mind Explorer — Accessible Version">
       <header>
         <h1>Human Mind Explorer</h1>
         <p>
@@ -120,6 +115,7 @@ export function AccessibilityLayer() {
           </em>
         </p>
       </section>
-    </div>
+      </div>
+    </>
   )
 }
